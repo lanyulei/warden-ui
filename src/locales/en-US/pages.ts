@@ -1,0 +1,26 @@
+export default {
+  'pages.layouts.userLayout.title':
+    'Ant Design is the most influential web design specification in Xihu district',
+  'pages.login.accountLogin.tab': 'Account Login',
+  'pages.login.accountLogin.errorMessage':
+    'Please enter the correct username and password',
+  'pages.login.failure': 'Login failed, please try again!',
+  'pages.login.success': 'Login successful!',
+  'pages.login.username.placeholder': 'Please enter your username',
+  'pages.login.username.required': 'Please input your username!',
+  'pages.login.password.placeholder': 'Please enter your password',
+  'pages.login.password.required': 'Please input your password!',
+  'pages.login.phoneLogin.tab': 'Phone Login',
+  'pages.login.phoneNumber.placeholder': 'Please enter your phone number',
+  'pages.login.phoneNumber.required': 'Please input your phone number!',
+  'pages.login.phoneNumber.invalid': 'Phone number is invalid!',
+  'pages.login.captcha.placeholder': 'Please enter verification code',
+  'pages.login.captcha.required': 'Please input verification code!',
+  'pages.login.phoneLogin.getVerificationCode': 'Get Code',
+  'pages.getCaptchaSecondText': 'seconds',
+  'pages.login.rememberMe': 'Remember me',
+  'pages.login.forgotPassword': 'Forgot Password ?',
+  'pages.login.loginWith': 'Login with :',
+  'pages.404.subTitle': 'Sorry, the page you visited does not exist.',
+  'pages.404.buttonText': 'Back Home',
+};
