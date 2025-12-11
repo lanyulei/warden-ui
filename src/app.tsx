@@ -7,6 +7,7 @@ import React from 'react';
 import {
   AvatarDropdown,
   AvatarName,
+  FloatMessageButton,
   Footer,
   Question,
   SelectLang,
@@ -107,14 +108,14 @@ export const layout: RunTimeLayoutConfig = ({
         width: '331px',
       },
     ],
-    links: isDev
-      ? [
-          <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-            <LinkOutlined />
-            <span>OpenAPI 文档</span>
-          </Link>,
-        ]
-      : [],
+    // links: isDev
+    //   ? [
+    //     <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
+    //       <LinkOutlined />
+    //       <span>OpenAPI 文档</span>
+    //     </Link>,
+    //   ]
+    //   : [],
     menuHeaderRender: undefined,
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
@@ -137,6 +138,12 @@ export const layout: RunTimeLayoutConfig = ({
               }}
             />
           )}
+          <FloatMessageButton
+            onClick={() => {
+              console.log('打开消息中心');
+              // 这里可以添加打开消息抽屉或跳转到消息页面的逻辑
+            }}
+          />
         </>
       );
     },
