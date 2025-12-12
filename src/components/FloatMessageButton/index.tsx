@@ -1,9 +1,9 @@
 import { MessageOutlined, SendOutlined, CloseOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
-import { FloatButton, Badge, Modal, Input, Button, message } from 'antd';
-import React, { useState, useRef, useEffect } from 'react';
+import { FloatButton, Badge, Modal, Input, Button, message, Spin } from 'antd';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { chatStream, type ChatMessage } from '@/services/assistant';
+import { chatStream, getChatHistory, type ChatMessage } from '@/services/assistant';
 
 const { TextArea } = Input;
 
@@ -31,16 +31,49 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // 加载聊天历史
+  const loadChatHistory = useCallback(async () => {
+    if (historyLoaded || historyLoading) return;
+
+    setHistoryLoading(true);
+    try {
+      const response = await getChatHistory();
+      if (response.code === 20000 && response.data?.messages) {
+        const historyMessages: Message[] = response.data.messages.map((msg, index) => ({
+          id: `history-${index}-${new Date(msg.timestamp).getTime()}`,
+          content: msg.content,
+          sender: msg.role === 'user' ? 'user' : 'assistant',
+          timestamp: new Date(msg.timestamp),
+        }));
+        setMessages(historyMessages);
+      }
+    } catch (error) {
+      console.error('Failed to load chat history:', error);
+    } finally {
+      setHistoryLoading(false);
+      setHistoryLoaded(true);
+    }
+  }, [historyLoaded, historyLoading]);
 
   useEffect(() => {
     if (modalOpen) {
       scrollToBottom();
     }
   }, [messages, modalOpen]);
+
+  // 打开弹窗时加载历史消息
+  useEffect(() => {
+    if (modalOpen && !historyLoaded) {
+      loadChatHistory();
+    }
+  }, [modalOpen, historyLoaded, loadChatHistory]);
 
   const handleOpen = () => {
     setModalOpen(true);
@@ -472,7 +505,18 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
               backgroundColor: '#fff',
             }}
           >
-            {messages.length === 0 ? (
+            {historyLoading ? (
+              <div
+                style={{
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Spin tip="加载历史消息..." />
+              </div>
+            ) : messages.length === 0 ? (
               <div
                 style={{
                   height: '100%',

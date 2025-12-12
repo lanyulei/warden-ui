@@ -8,6 +8,21 @@ export interface ChatMessage {
   content: string;
 }
 
+// 聊天历史消息类型
+export interface ChatHistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+// 聊天历史响应数据
+export interface ChatHistoryResponse {
+  user_id: string;
+  session_id: string;
+  messages: ChatHistoryMessage[];
+  total: number;
+}
+
 // 聊天请求参数
 export interface ChatApiRequest {
   messages: ChatMessage[];
@@ -108,5 +123,16 @@ export async function chatStream(
   } catch (error) {
     onError?.(error as Error);
   }
+}
+
+// 获取聊天历史
+export async function getChatHistory() {
+  return request<{
+    code: number;
+    message: string;
+    data: ChatHistoryResponse;
+  }>('/api/v1/assistant/chat/history', {
+    method: 'GET',
+  });
 }
 
