@@ -1,6 +1,9 @@
 import { MessageOutlined, SendOutlined, CloseOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
-import { FloatButton, Badge, Modal, Input, Button } from 'antd';
+import { FloatButton, Badge, Modal, Input, Button, message } from 'antd';
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { chatStream, type ChatMessage } from '@/services/assistant';
 
 const { TextArea } = Input;
 
@@ -59,19 +62,65 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setLoading(true);
 
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: '这是一条自动回复消息。你可以在这里集成实际的聊天 API。',
-        sender: 'assistant',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+    // 创建助手消息占位
+    const assistantMessageId = (Date.now() + 1).toString();
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      content: '',
+      sender: 'assistant',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, assistantMessage]);
+
+    try {
+      // 构建消息历史
+      const chatMessages: ChatMessage[] = [
+        ...messages.map((msg) => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+        } as ChatMessage)),
+        { role: 'user' as const, content: currentInput },
+      ];
+
+      await chatStream(
+        { messages: chatMessages },
+        {
+          onMessage: (content: string) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: msg.content + content }
+                  : msg,
+              ),
+            );
+          },
+          onError: (error: Error) => {
+            message.error('请求失败，请稍后重试');
+            console.error('Chat stream error:', error);
+            // 移除空的助手消息
+            setMessages((prev) =>
+              prev.filter((msg) => msg.id !== assistantMessageId || msg.content),
+            );
+            setLoading(false);
+          },
+          onComplete: () => {
+            setLoading(false);
+          },
+        },
+      );
+    } catch (error) {
+      message.error('请求失败，请稍后重试');
+      console.error('Chat error:', error);
+      // 移除空的助手消息
+      setMessages((prev) =>
+        prev.filter((msg) => msg.id !== assistantMessageId || msg.content),
+      );
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -129,10 +178,14 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
               fontSize: 15,
               lineHeight: 1.6,
               wordBreak: 'break-word',
-              whiteSpace: 'pre-wrap',
             }}
+            className={isUser ? '' : 'markdown-content'}
           >
-            {message.content}
+            {isUser ? (
+              <span style={{ whiteSpace: 'pre-wrap' }}>{message.content}</span>
+            ) : (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+            )}
           </div>
         </div>
       </div>
@@ -223,6 +276,92 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
           @keyframes bounce {
             0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
             40% { transform: scale(1); opacity: 1; }
+          }
+          .markdown-content p {
+            margin: 0 0 8px 0;
+          }
+          .markdown-content p:last-child {
+            margin-bottom: 0;
+          }
+          .markdown-content h1, .markdown-content h2, .markdown-content h3,
+          .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+          }
+          .markdown-content h1:first-child, .markdown-content h2:first-child,
+          .markdown-content h3:first-child, .markdown-content h4:first-child,
+          .markdown-content h5:first-child, .markdown-content h6:first-child {
+            margin-top: 0;
+          }
+          .markdown-content h1 { font-size: 1.5em; }
+          .markdown-content h2 { font-size: 1.3em; }
+          .markdown-content h3 { font-size: 1.1em; }
+          .markdown-content ul, .markdown-content ol {
+            margin: 8px 0;
+            padding-left: 20px;
+          }
+          .markdown-content li {
+            margin: 4px 0;
+          }
+          .markdown-content code {
+            background-color: rgba(0, 0, 0, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.9em;
+          }
+          .markdown-content pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 12px 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 12px 0;
+          }
+          .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+          }
+          .markdown-content blockquote {
+            border-left: 4px solid #1677ff;
+            margin: 12px 0;
+            padding: 8px 16px;
+            background-color: rgba(22, 119, 255, 0.06);
+            border-radius: 0 8px 8px 0;
+          }
+          .markdown-content blockquote p {
+            margin: 0;
+          }
+          .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0;
+          }
+          .markdown-content th, .markdown-content td {
+            border: 1px solid #d9d9d9;
+            padding: 8px 12px;
+            text-align: left;
+          }
+          .markdown-content th {
+            background-color: rgba(0, 0, 0, 0.04);
+            font-weight: 600;
+          }
+          .markdown-content a {
+            color: #1677ff;
+            text-decoration: none;
+          }
+          .markdown-content a:hover {
+            text-decoration: underline;
+          }
+          .markdown-content hr {
+            border: none;
+            border-top: 1px solid #d9d9d9;
+            margin: 16px 0;
+          }
+          .markdown-content img {
+            max-width: 100%;
+            border-radius: 8px;
           }
         `}
       </style>
@@ -375,10 +514,13 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
               </div>
             ) : (
               <div style={{ padding: '20px 15%' }}>
-                {messages.map((message) => (
-                  <MessageItem key={message.id} message={message} />
-                ))}
-                {loading && <LoadingDots />}
+                {messages.map((msg) => {
+                  // 如果是正在流式接收的空消息，显示 LoadingDots
+                  if (loading && msg.sender === 'assistant' && msg.content === '' && msg.id === messages[messages.length - 1]?.id) {
+                    return <LoadingDots key={msg.id} />;
+                  }
+                  return <MessageItem key={msg.id} message={msg} />;
+                })}
                 <div ref={messagesEndRef} />
               </div>
             )}
