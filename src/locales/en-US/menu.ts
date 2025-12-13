@@ -4,6 +4,7 @@ export default {
   'menu.system': 'System',
   'menu.system.system-user': 'User Management',
   'menu.system.system-role': 'Role Management',
+  'menu.system.system-permission': 'Permission Management',
   'menu.monitor': 'Monitor',
   'menu.monitor.monitor-datasource': 'Datasource Management',
   'menu.monitor.monitor-proxy': 'Prometheus Proxy',

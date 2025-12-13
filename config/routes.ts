@@ -69,6 +69,11 @@ export default [
         name: 'system-role',
         component: './system/role',
       },
+      {
+        path: '/system/permission',
+        name: 'system-permission',
+        component: './system/permission',
+      },
     ],
   },
   {

@@ -113,3 +113,75 @@ export async function deleteRole(id: string) {
     method: 'DELETE',
   });
 }
+
+// 权限管理接口
+export type PermissionType = 'api' | 'element';
+
+export interface PermissionItem {
+  id: string;
+  code: string;
+  name: string;
+  types: PermissionType;
+  path?: string;
+  method?: string;
+  description?: string;
+  status: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export async function queryPermissionList(params: {
+  page?: number;
+  size?: number;
+  code?: string;
+  name?: string;
+  types?: PermissionType;
+  path?: string;
+  method?: string;
+  status?: boolean;
+}) {
+  return request<{
+    code: number;
+    message: string;
+    data: {
+      list: PermissionItem[];
+      total: number;
+      page: number;
+      size: number;
+    };
+  }>('/api/v1/system/permission', {
+    method: 'GET',
+    params,
+  });
+}
+
+export async function createPermission(data: {
+  code: string;
+  name: string;
+  types: PermissionType;
+  path?: string;
+  method?: string;
+  description?: string;
+  status?: boolean;
+}) {
+  return request('/api/v1/system/permission', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function updatePermission(id: string, data: Partial<Omit<PermissionItem, 'id'>>) {
+  return request(`/api/v1/system/permission/${id}`, {
+    method: 'PUT',
+    data: {
+      id,
+      ...data,
+    },
+  });
+}
+
+export async function deletePermission(id: string) {
+  return request(`/api/v1/system/permission/${id}`, {
+    method: 'DELETE',
+  });
+}
