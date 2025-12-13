@@ -227,7 +227,7 @@ const PrometheusProxyPage: React.FC = () => {
             <Form.Item
               name="datasourceId"
               label="数据源"
-              style={{ flex: '0 0 300px', marginBottom: 0 }}
+              style={{ flex: '0 0 280px', marginBottom: 0 }}
             >
               <Select
                 placeholder="请选择数据源"
@@ -245,7 +245,7 @@ const PrometheusProxyPage: React.FC = () => {
         </Form>
       </Card>
 
-      <Card styles={{ body: { paddingTop: 5, paddingBottom: 8} }}>
+      <Card styles={{ body: { paddingTop: 5, paddingBottom: 8 } }}>
         <Spin spinning={loading}>
           <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
         </Spin>
