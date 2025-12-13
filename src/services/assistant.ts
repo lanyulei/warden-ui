@@ -62,21 +62,12 @@ export interface ChatStreamCallbacks {
 
 // 获取流式 API 的基础 URL
 // 开发环境直接连接后端，避免代理缓冲问题
-// 生产环境可通过环境变量 REACT_APP_STREAM_API_URL 配置
 function getStreamBaseUrl(): string {
-  // 优先使用环境变量配置的地址（适用于跨域部署场景）
-  const envUrl = (window as any).STREAM_API_URL || process.env.STREAM_API_URL;
-  if (envUrl) {
-    return envUrl;
-  }
-  
   if (process.env.NODE_ENV === 'development') {
     // 开发环境直接连接后端服务器，绕过代理缓冲
     return 'http://127.0.0.1:9527';
   }
-  
-  // 生产环境默认使用相对路径（同域部署）
-  // 如果使用 Nginx 反向代理，确保配置了 proxy_buffering off
+  // 生产环境使用相对路径
   return '';
 }
 
