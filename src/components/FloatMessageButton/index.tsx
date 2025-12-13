@@ -164,7 +164,7 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
   };
 
   // 消息项组件
-  const MessageItem = ({ message }: { message: Message }) => {
+  const MessageItem = ({ message, isStreaming = false }: { message: Message; isStreaming?: boolean }) => {
     const isUser = message.sender === 'user';
     return (
       <div
@@ -217,7 +217,10 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
             {isUser ? (
               <span style={{ whiteSpace: 'pre-wrap' }}>{message.content}</span>
             ) : (
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+              <>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                {isStreaming && <span className="typing-cursor" />}
+              </>
             )}
           </div>
         </div>
@@ -396,6 +399,19 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
             max-width: 100%;
             border-radius: 8px;
           }
+          .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background-color: #1677ff;
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: blink 1s step-end infinite;
+          }
+          @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+          }
         `}
       </style>
 
@@ -559,11 +575,14 @@ const FloatMessageButton: React.FC<FloatMessageButtonProps> = ({
             ) : (
               <div style={{ padding: '20px 15%' }}>
                 {messages.map((msg) => {
+                  const isLastAssistantMessage = msg.sender === 'assistant' && msg.id === messages[messages.length - 1]?.id;
+                  const isStreaming = loading && isLastAssistantMessage;
+
                   // 如果是正在流式接收的空消息，显示 LoadingDots
-                  if (loading && msg.sender === 'assistant' && msg.content === '' && msg.id === messages[messages.length - 1]?.id) {
+                  if (isStreaming && msg.content === '') {
                     return <LoadingDots key={msg.id} />;
                   }
-                  return <MessageItem key={msg.id} message={msg} />;
+                  return <MessageItem key={msg.id} message={msg} isStreaming={isStreaming} />;
                 })}
                 <div ref={messagesEndRef} />
               </div>

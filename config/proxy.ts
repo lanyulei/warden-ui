@@ -12,6 +12,29 @@
 export default {
   // 如果需要自定义本地开发服务器  请取消注释按需调整
   dev: {
+    // 流式 API 专用配置 - 禁用缓冲以支持 SSE
+    '/api/v1/assistant/chat/stream': {
+      target: 'http://127.0.0.1:9527',
+      changeOrigin: true,
+      // 关闭代理缓冲，支持 SSE 流式响应
+      onProxyReq: (proxyReq: any) => {
+        // 移除压缩请求头，防止服务器返回压缩内容
+        proxyReq.removeHeader('Accept-Encoding');
+        // 设置请求头以支持 SSE
+        proxyReq.setHeader('Accept', 'text/event-stream');
+        proxyReq.setHeader('Cache-Control', 'no-cache');
+        proxyReq.setHeader('Connection', 'keep-alive');
+      },
+      onProxyRes: (proxyRes: any) => {
+        // 删除所有压缩相关的响应头，确保不压缩
+        delete proxyRes.headers['content-encoding'];
+        delete proxyRes.headers['Content-Encoding'];
+        // 设置响应头以支持 SSE
+        proxyRes.headers['Cache-Control'] = 'no-cache';
+        proxyRes.headers['Connection'] = 'keep-alive';
+        proxyRes.headers['X-Accel-Buffering'] = 'no';
+      },
+    },
     // localhost:8000/api/** -> https://preview.pro.ant.design/api/**
     '/api/': {
       // 要代理的地址
